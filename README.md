@@ -1,6 +1,6 @@
 # learning-from-defaults
 
-The learning algorithms can used with the following parameter settings.
+The learning algorithms can be used with the following parameter settings.
 
 Incremental heuristic learning:
 
