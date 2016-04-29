@@ -91,7 +91,7 @@ public class GroundTheorySolver {
         try {
             if (this.solver == null) {
                 this.solver = SolverFactory.newDefault();
-                //this.solver = org.sat4j.maxsat.SolverFactory.newLight();
+                //this.solver = SolverFactory.newMiniLearningHeap();
                 this.solver.newVar(this.literalsToIndices.size());
                 this.solver.setExpectedNumberOfClauses(softProgram.size());
                 for (int[] clause : hardDimacsClauses) {
@@ -108,6 +108,8 @@ public class GroundTheorySolver {
                 this.hardProgram.add(newHardClause);
                 this.hardDimacsClauses.add(this.toHardDimacsClause(newHardClause));
             }
+//            if (hardDimacsClauses.size() > 100)
+//                System.out.println("Dimacs clauses: "+hardDimacsClauses.size());
             try {
                 for (Clause newHardClause : this.newHardClauses_forSolver) {
                     this.solver.addClause(new VecInt(this.toHardDimacsClause(newHardClause)));

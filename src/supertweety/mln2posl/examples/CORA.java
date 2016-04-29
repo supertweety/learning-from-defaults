@@ -92,7 +92,7 @@ public class CORA {
         PossibilisticLogicTheory pl = convertor.possibilisticLogic();
         System.out.println("\\begin{align*}");
         int i = 0;
-        for (double level : pl.levels()){
+        for (double level : pl.weights()){
             for (Clause rule : pl.getAlphaLevel(level)) {
                 if (clausesAsRules) {
                     DefaultRule drule = Sugar.chooseOne(convertor.clauseToOriginalRules(rule, level));
@@ -181,7 +181,7 @@ public class CORA {
 
         exhaustiveConvertor.convert(1000000);
 
-        for (double level : exhaustiveConvertor.possibilisticLogic().levels()) {
+        for (double level : exhaustiveConvertor.possibilisticLogic().weights()) {
             System.out.println("\n---------------------\nLevel " + level);
             for (Clause clause : exhaustiveConvertor.possibilisticLogic().getAlphaLevel(level)) {
                 DefaultRule dr = Sugar.chooseOne(exhaustiveConvertor.clauseToOriginalRules(clause, level));

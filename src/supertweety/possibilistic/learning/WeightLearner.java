@@ -59,9 +59,9 @@ public class WeightLearner {
         if (this.hardRules != null) {
             auxPlt.addAll(this.hardRules, 1.0);
         }
-        List<DefaultRule> coveredPositiveExamples = LearningUtils.coveredExamples(auxPlt, this.positiveExamples);
+        List<DefaultRule> coveredPositiveExamples = LearningUtils.coveredExamples_parallelized(auxPlt, this.positiveExamples);
         List<DefaultRule> coverablePositiveExamples = LearningUtils.coverableAndNotCoveredExamples(auxPlt, Sugar.listDifference(this.positiveExamples, coveredPositiveExamples));
-        List<DefaultRule> coveredNegativeExamples = LearningUtils.coveredExamples(auxPlt, this.negativeExamples);
+        List<DefaultRule> coveredNegativeExamples = LearningUtils.coveredExamples_parallelized(auxPlt, this.negativeExamples);
         List<DefaultRule> coverableNegativeExamples = LearningUtils.coverableAndNotCoveredExamples(auxPlt, Sugar.listDifference(this.negativeExamples, coveredNegativeExamples));
         this.open.add(
                 new SearchNode(emptyPossibilisticTheory, Sugar.listFromCollections(this.theory), coveredPositiveExamples, coveredNegativeExamples, coverablePositiveExamples, coverableNegativeExamples,
@@ -89,9 +89,9 @@ public class WeightLearner {
                     if (this.hardRules != null) {
                         auxPLT.addAll(this.hardRules, 1.0);
                     }
-                    List<DefaultRule> coveredPositiveExamples = LearningUtils.coveredExamples(auxPLT, current.coverablePositiveExamples);
+                    List<DefaultRule> coveredPositiveExamples = LearningUtils.coveredExamples_parallelized(auxPLT, current.coverablePositiveExamples);
                     List<DefaultRule> coverablePositiveExamples = LearningUtils.coverableAndNotCoveredExamples(auxPLT, Sugar.listDifference(current.coverablePositiveExamples, coveredPositiveExamples));
-                    List<DefaultRule> coveredNegativeExamples = LearningUtils.coveredExamples(auxPLT, current.coverableNegativeExamples);
+                    List<DefaultRule> coveredNegativeExamples = LearningUtils.coveredExamples_parallelized(auxPLT, current.coverableNegativeExamples);
                     List<DefaultRule> coverableNegativeExamples = LearningUtils.coverableAndNotCoveredExamples(auxPLT, Sugar.listDifference(current.coverableNegativeExamples, coveredNegativeExamples));
                     SearchNode expandedNode = new SearchNode(newPLT, candidateExpansion,
                             Sugar.listFromCollections(current.coveredPositiveExamples, coveredPositiveExamples),
@@ -100,7 +100,7 @@ public class WeightLearner {
                             new CandidateConstructor(candidateExpansion, coverablePositiveExamples));
                     //System.out.println("<<START\n"+newPLT+", score = "+expandedNode.score()+", pos = "+expandedNode.coveredPositiveExamples+", neg = "+expandedNode.coverableNegativeExamples+"   END>>\n");
                     if (expandedNode.score() > this.bestSoFar.score() ||
-                            (expandedNode.score() == this.bestSoFar.score() && expandedNode.stratification.levels().size() < this.bestSoFar.stratification.levels().size())) {
+                            (expandedNode.score() == this.bestSoFar.score() && expandedNode.stratification.weights().size() < this.bestSoFar.stratification.weights().size())) {
                         this.bestSoFar = expandedNode;
                     }
                     // simple branch and bound pruning
@@ -203,7 +203,7 @@ public class WeightLearner {
                 i++;
             }
             satProblemClauses.add(new Clause(exampleIndicators));
-            //satProblemClauses.add(new Clause(candidateIndicators));
+            //satProblemClauses.addRule(new Clause(candidateIndicators));
             if (hardRules != null) {
                 satProblemClauses.addAll(hardRules);
             }

@@ -15,6 +15,7 @@ import ida.utils.CommandLine;
 import ida.utils.Sugar;
 import ida.utils.tuples.Quadruple;
 import supertweety.defaults.DefaultRule;
+import supertweety.logic.GroundTheorySolver;
 import supertweety.possibilistic.PossibilisticLogicTheory;
 import supertweety.possibilistic.learning.misc.ArffFromDefaults;
 
@@ -29,6 +30,10 @@ import java.util.Set;
  * Created by kuzelkao_cardiff on 03/11/15.
  */
 public class Main {
+
+    static {
+        PossibilisticLogicTheory.USE_CACHING = true;
+    }
 
     public static void main(String[] args) throws Exception {
         long time1 = System.currentTimeMillis();
@@ -75,7 +80,6 @@ public class Main {
             String neg = params.get("-neg");
             String posTest = params.get("-testpos");
             String negTest = params.get("-testneg");
-            String iterations = params.get("-iterations");
             List<DefaultRule> defaults = DatasetReader.readDefaultRuleDataset(new FileReader(pos));
             List<DefaultRule> nondefaults = DatasetReader.readDefaultRuleDataset(new FileReader(neg));
             List<Clause> hardRules = null;
@@ -89,29 +93,25 @@ public class Main {
                 }
             }
 
-            PossibilisticLearner pl = new PossibilisticLearner(defaults, nondefaults, hardRules);
+            int iterations = Integer.MAX_VALUE;
+
+            HeuristicPossibilisticLearner pl = new HeuristicPossibilisticLearner(defaults, nondefaults, hardRules);
 
             if (params.containsKey("-candidates")){
                 pl.setCandidatesSampleSize(Integer.parseInt(params.get("-candidates")));
             }
-            if (params.containsKey("-ruleSubsampling")){
-                pl.setSampleSubRules(Boolean.parseBoolean(params.get("-ruleSubsampling")));
-            }
             if (params.containsKey("-candidateSampleSize")){
                 pl.setCandidatesSampleSize(Integer.parseInt(params.get("-candidateSampleSize")));
             }
-            if (params.containsKey("-rules")){
-                List<Clause> rules = new ArrayList<Clause>();
-                for (String line : Sugar.readLines(new FileReader(params.get("-rules")))){
-                    line = line.trim();
-                    if (line.length() > 0){
-                        rules.add(Clause.parse(line));
-                    }
-                    System.out.println(line);
-                }
-                pl.setRules(rules);
+            if (params.containsKey("-defaults")){
+                pl.setUseDefaultsAsFeatures(Boolean.parseBoolean(params.get("-defaults")));
             }
-
+            if (params.containsKey("-timeout")){
+                pl.setTimeout(Long.parseLong(params.get("-timeout")));
+            }
+            if (params.containsKey("-iterations")){
+                iterations = Integer.parseInt(params.get("-iterations"));
+            }
 
             final int INCREMENTAL = 1, SAYU = 2, MEMOIZATION_OF_DEFAULTS = 3, WEIGHT_LEARNING = 4;
             int mode = INCREMENTAL;
@@ -130,11 +130,7 @@ public class Main {
             PossibilisticLogicTheory learnedTheory = null;
 
             if (mode == INCREMENTAL) {
-                learnedTheory = pl.greedyIncrementalLearner(Integer.parseInt(iterations));
-            } else if (mode == SAYU){
-                learnedTheory = pl.greedySayuLearn(Integer.parseInt(iterations));
-            } else if (mode == WEIGHT_LEARNING){
-                learnedTheory = pl.weightLearning();
+                learnedTheory = pl.greedyIncrementalLearner(iterations);
             }
 
             System.out.println(learnedTheory);
@@ -144,8 +140,8 @@ public class Main {
                 List<DefaultRule> testNondefaults = DatasetReader.readDefaultRuleDataset(new FileReader(negTest));
 
                 if (learnedTheory != null) {
-                    List<DefaultRule> coveredPositiveTest = LearningUtils.coveredExamples(learnedTheory, testDefaults);
-                    List<DefaultRule> coveredNegativeTest = LearningUtils.coveredExamples(learnedTheory, testNondefaults);
+                    List<DefaultRule> coveredPositiveTest = LearningUtils.coveredExamples_parallelized(learnedTheory, testDefaults);
+                    List<DefaultRule> coveredNegativeTest = LearningUtils.coveredExamples_parallelized(learnedTheory, testNondefaults);
                     double coveredPositive = coveredPositiveTest.size();
                     double coveredNegative = coveredNegativeTest.size();
                     double accuracy = (coveredPositive + testNondefaults.size() - coveredNegative) / (testDefaults.size() + testNondefaults.size());
@@ -160,10 +156,10 @@ public class Main {
                     List<Double> trainSetAccuracies = new ArrayList<Double>();
                     List<Quadruple<Double,Double,Double,Double>> stats = new ArrayList<Quadruple<Double,Double,Double,Double>>();
                     for (PossibilisticLogicTheory theoryN : pl.incrementalLearnerHistory()){
-                        List<DefaultRule> coveredPosTest = LearningUtils.coveredExamples(theoryN, testDefaults);
-                        List<DefaultRule> coveredNegTest = LearningUtils.coveredExamples(theoryN, testNondefaults);
-                        List<DefaultRule> coveredPosTrain = LearningUtils.coveredExamples(theoryN, defaults);
-                        List<DefaultRule> coveredNegTrain = LearningUtils.coveredExamples(theoryN, nondefaults);
+                        List<DefaultRule> coveredPosTest = LearningUtils.coveredExamples_parallelized(theoryN, testDefaults);
+                        List<DefaultRule> coveredNegTest = LearningUtils.coveredExamples_parallelized(theoryN, testNondefaults);
+                        List<DefaultRule> coveredPosTrain = LearningUtils.coveredExamples_parallelized(theoryN, defaults);
+                        List<DefaultRule> coveredNegTrain = LearningUtils.coveredExamples_parallelized(theoryN, nondefaults);
                         double acc = (coveredPosTest.size() + testNondefaults.size() - coveredNegTest.size()) / (double)(testDefaults.size() + testNondefaults.size());
                         double trainAcc = (coveredPosTrain.size() + nondefaults.size() - coveredNegTrain.size()) / (double)(defaults.size() + nondefaults.size());
                         testSetAccuracies.add(acc);

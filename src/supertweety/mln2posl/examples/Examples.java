@@ -73,7 +73,7 @@ public class Examples {
         PossibilisticLogicTheory pl = convertor.possibilisticLogic();
         System.out.println("\\begin{align*}");
         int i = 0;
-        for (double level : pl.levels()){
+        for (double level : pl.weights()){
             for (Clause rule : pl.getAlphaLevel(level)) {
                 if (clausesAsRules) {
                     DefaultRule drule = Sugar.chooseOne(convertor.clauseToOriginalRules(rule, level));
@@ -94,7 +94,7 @@ public class Examples {
     public static void toLatex(PossibilisticLogicTheory pl){
         System.out.println("\\begin{align*}");
         int i = 0;
-        for (double level : pl.levels()){
+        for (double level : pl.weights()){
             for (Clause rule : pl.getAlphaLevel(level)) {
                 System.out.println("("+latexClause(rule)+", \\lambda_{"+(i)+"}) \\\\");
             }
@@ -125,7 +125,7 @@ public class Examples {
         exhaustiveConvertor.setDoNotRemoveEntailedByLonger(false);
         exhaustiveConvertor.convert(10000);
 
-        for (double level : exhaustiveConvertor.possibilisticLogic().levels()) {
+        for (double level : exhaustiveConvertor.possibilisticLogic().weights()) {
             System.out.println("\n---------------------\nLevel " + level);
             for (Clause clause : exhaustiveConvertor.possibilisticLogic().getAlphaLevel(level)) {
                 System.out.println(clause);
@@ -175,7 +175,7 @@ public class Examples {
 
         exhaustiveConvertor2.convert(100000);
 
-        for (double level : exhaustiveConvertor2.possibilisticLogic().levels()){
+        for (double level : exhaustiveConvertor2.possibilisticLogic().weights()){
             System.out.println("\n---------------------\nLevel "+level);
             for (Clause clause : exhaustiveConvertor2.possibilisticLogic().getAlphaLevel(level)) {
                 System.out.println(clause);
@@ -186,7 +186,7 @@ public class Examples {
 
         System.out.println("\n\n------\n\n");
 
-        for (double level : exhaustiveConvertor2.possibilisticLogic().levels()) {
+        for (double level : exhaustiveConvertor2.possibilisticLogic().weights()) {
             System.out.println("\n---------------------\nLevel " + level);
             for (Clause clause : exhaustiveConvertor2.possibilisticLogic().getAlphaLevel(level)) {
                 DefaultRule dr = Sugar.chooseOne(exhaustiveConvertor2.clauseToOriginalRules(clause, level));

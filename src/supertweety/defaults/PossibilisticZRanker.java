@@ -69,7 +69,7 @@ public class PossibilisticZRanker {
                 System.out.println("Building antecedent specializations.");
                 MultiMap<DefaultRule, DefaultRule> specializations = DefaultTransformationUtils.representativeBodySpecializations(rule, this.interchangeable);
                 System.out.println(specializations.size()+" antecedent specializations built.");
-                // first, we try to add the default rule as it is (otherwise, we have to add its specializations separately)
+                // first, we try to addRule the default rule as it is (otherwise, we have to addRule its specializations separately)
                 boolean allSpecializationsTolerated = true;
                 for (DefaultRule key : specializations.keySet()) {
                     for (DefaultRule specialization : specializations.get(key)) {

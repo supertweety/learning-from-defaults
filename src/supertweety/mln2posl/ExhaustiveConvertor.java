@@ -89,7 +89,7 @@ public class ExhaustiveConvertor {
         System.out.println("HARD RULES: " + hardRules);
 
         for (Clause hardRule : hardRules){
-            theory.add(hardRule, Double.POSITIVE_INFINITY);
+            theory.addRule(hardRule, Double.POSITIVE_INFINITY);
         }
 
         MultiMap<Pair<Literal,Integer>,Pair<Set<Literal>,Set<Literal>>> evidenceLiterals2rules = new MultiMap<Pair<Literal,Integer>,Pair<Set<Literal>,Set<Literal>>>();
@@ -140,12 +140,12 @@ public class ExhaustiveConvertor {
                         if (!isDeterministic(consequenceLiteral) && !isImpliedByHardRules(Sugar.union(hardRules, theory.getAlphaLevel(penalty)), evidenceSet, Sugar.set(consequenceLiteral))) {
                             System.out.println("CONSEQUENCE OF " + evidenceSet + " IS " + consequenceLiteral + ", PENALTY: " + penalty+", PENALTY FROM HEAP: "+penaltyFromHeap/*+", ev: "+mlnCopy1.state()*/);
                             Clause liftedClause = liftClause(new Clause(Sugar.union(Utils.flipSigns(evidenceSet), consequenceLiteral)), exchangeable);
-                            theory.add(liftedClause, penalty);
+                            theory.addRule(liftedClause, penalty);
                             Pair<Clause,Clause> ldr = liftDefaultRule(new Clause(evidenceSet), new Clause(consequenceLiteral), exchangeable);
                             this.clausesToRules.put(new Pair<Clause,Double>(liftedClause, penalty), new DefaultRule(ldr.r, ldr.s));
                         }
                     }
-                    if (theory.levels().lower(penalty) != null){
+                    if (theory.weights().lower(penalty) != null){
                         Set<Literal> filteredConsequenceSet = new HashSet<Literal>();
                         for (Literal consequenceLiteral : consequenceSet) {
                             if (!isDeterministic(consequenceLiteral) && !isImpliedByHardRules(hardRules, evidenceSet, Sugar.set(consequenceLiteral))) {
@@ -154,9 +154,9 @@ public class ExhaustiveConvertor {
                         }
                         System.out.println("~CONSEQUENCE OF " + evidenceSet + " IS " + filteredConsequenceSet + ", PENALTY: " + penalty+", PENALTY FROM HEAP: "+penaltyFromHeap/*+", ev: "+mlnCopy1.state()*/);
                         if (shortDrowningEnforcingClauses){
-                            theory.add(liftClause(new Clause(Utils.flipSigns(evidenceSet)), exchangeable), theory.levels().lower(penalty));
+                            theory.addRule(liftClause(new Clause(Utils.flipSigns(evidenceSet)), exchangeable), theory.weights().lower(penalty));
                         } else {
-                            theory.add(liftClause(new Clause(Utils.flipSigns(Sugar.union(evidenceSet, filteredConsequenceSet))), exchangeable), theory.levels().lower(penalty));
+                            theory.addRule(liftClause(new Clause(Utils.flipSigns(Sugar.union(evidenceSet, filteredConsequenceSet))), exchangeable), theory.weights().lower(penalty));
                         }
                     }
                 }
@@ -593,7 +593,7 @@ public class ExhaustiveConvertor {
         }
         Clause rightAuxClause = new Clause(rightAuxLiterals);
 
-        for (double alpha : possibilisticLogicTheory.levels()){
+        for (double alpha : possibilisticLogicTheory.weights()){
             Map<Clause,Integer> lengths = new HashMap<Clause,Integer>();
             Set<Clause> alphaLevel = Sugar.setFromCollections(possibilisticLogicTheory.getAlphaLevel(alpha));
             List<Clause> strictAlphaCut = possibilisticLogicTheory.getStrictAlphaCut(alpha);
@@ -606,9 +606,9 @@ public class ExhaustiveConvertor {
                     if (isImplied(testedClause, alphaLevel, this.doNotRemoveEntailedByLonger ? selectShorter(strictAlphaCut, testedClause) : strictAlphaCut)) {
                         alphaLevel.remove(testedClause);
                     } else {
-                        filtered.add(testedClause, alpha);
+                        filtered.addRule(testedClause, alpha);
                     }
-                } else if (alpha < possibilisticLogicTheory.levels().last()) {
+                } else if (alpha < possibilisticLogicTheory.weights().last()) {
                     alphaLevel.remove(testedClause);
                     Set<Literal> leftAuxLiterals = new HashSet<Literal>();
                     for (Literal literal : testedClause.literals()){
@@ -619,11 +619,11 @@ public class ExhaustiveConvertor {
                     Pair<Term[],List<Term[]>> substitution = new Matching().allSubstitutions(new Clause(leftAuxLiterals), rightAuxClause, 1);
                     //System.out.println("NUM SUBSTITUTIONS: "+substitution.s.size());
                     if (!isImplied(LogicUtils.substitute(testedClause, substitution.r, substitution.s.get(0)), alphaLevel, this.doNotRemoveEntailedByLonger ? selectShorter(strictAlphaCut, testedClause) : strictAlphaCut)) {
-                        filtered.add(testedClause, alpha);
+                        filtered.addRule(testedClause, alpha);
                         alphaLevel.add(testedClause); //returning it back
                     }
                 } else {
-                    filtered.add(testedClause, alpha); //hard rule
+                    filtered.addRule(testedClause, alpha); //hard rule
                 }
             }
             System.out.println("Level "+alpha+" done.");

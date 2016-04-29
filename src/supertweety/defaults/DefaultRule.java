@@ -53,6 +53,9 @@ public class DefaultRule {
     }
 
     public String toString(){
+        if (this.body.countLiterals() == 0){
+            return " -> "+this.head;
+        }
         return this.body+" -> "+this.head;
     }
 

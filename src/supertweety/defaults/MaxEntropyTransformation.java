@@ -47,7 +47,7 @@ public class MaxEntropyTransformation {
 //        for (Clause hardRule : hardRules) {
 //            universeAsSet.removeAll(hardRule.terms());
 //        }
-//        this.interchangeable.add(universeAsSet);
+//        this.interchangeable.addRule(universeAsSet);
 
         List<Set<Constant>> universeAsSets = Sugar.<Set<Constant>,Set<Constant>>funcall(universe, new Sugar.Fun<Set<Constant>,Set<Constant>>(){
             @Override
@@ -88,7 +88,7 @@ public class MaxEntropyTransformation {
 
             for (DefaultRule rule : Sugar.<DefaultRule>listFromCollections(rules)) {
                 MultiMap<DefaultRule, DefaultRule> specializations = DefaultTransformationUtils.representativeBodySpecializations(rule, this.interchangeable);
-                // first, we try to add the default rule as it is (otherwise, we have to add its specializations separately)
+                // first, we try to addRule the default rule as it is (otherwise, we have to addRule its specializations separately)
 
                 for (DefaultRule key : specializations.keySet()) {
                     specializationsLoop:
